@@ -7,17 +7,24 @@
 		</style>
 	</head>
 	<body>
+        <link rel="stylesheet" href="style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <div id = "hud">
+
+            <p id = "info" style="z-index: 265;position:absolute;color:aliceblue">Information:
+            </p>
+            <button id="IV" onmousedown="increaseVoume()">Increase Volume</button>
+            <button id= "DV" onmousedown="decreaseVolume()">Decrease Volume</button>
+            <button id = "IT" onmousedown="increaseTemperature()">Increase Temperature</button>
+            <button id = "DT" onmousedown="decreaseTemperature()">Decrease Temperature</button>
+
+
+        </div>
         <div id="main">
             <script src="three/three.js"></script>
             <script src="three/OrbitControls.js"></script>
             <script src ="main.js"></script>
         </div>
-        <div id = "hud">
 
-            <p id = "info">Information:
-
-            </p>
-
-        </div>
 	</body>
 </html>

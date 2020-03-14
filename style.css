@@ -1,0 +1,66 @@
+#IV{
+    position: absolute;
+    z-index: 265;
+    top:10%;
+    left:90%;
+    height:9%;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50;
+    transition-duration: 0.4s;
+
+}
+
+#DV{
+    position: absolute;
+    z-index: 265;
+    top:20%;
+    left:90%;
+    height:9%;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50;    
+    transition-duration: 0.4s;
+
+
+}
+#IT{
+    position: absolute;
+    z-index: 265;
+    top:30%;
+    left:90%;
+    height:9%;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50;    
+    transition-duration: 0.4s;
+
+
+}
+#DT{
+    position: absolute;
+    z-index: 265;
+    top:40%;
+    left:90%;
+    height:9%;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50;    
+    transition-duration: 0.4s;
+
+
+}
+
+#DV:hover, #IV:hover,#DT:hover,#IT:hover{
+
+    background-color: #4CAF50; /* Green */
+    color: white;
+
+}
+
+#DV:active, #IV:active, #IT:active, #DT:active{
+
+    background-color: aquamarine;
+    color: black;
+
+}

@@ -8,7 +8,8 @@ var PARTICLE_VERTS=15;
 var BALTZMANN = 1.380649; 
 var IDEAL_GAS_CONSTANT = 8.314;
 var MAX_PARTICLES = 2500;
-
+var MIN_VOLUME = 1000;
+var MAX_VOLUME = 1000000;
 
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -45,6 +46,17 @@ var helper = new THREE.DirectionalLightHelper( light2, 5 );
 var pGeometry = new THREE.SphereGeometry( this.r, PARTICLE_VERTS, PARTICLE_VERTS );
 var pMaterial = new THREE.MeshPhongMaterial( {color: 0xffff00} );
 var pMesh = new THREE.Mesh( pGeometry, pMaterial );
+
+var mousePressed = false;
+document.body.onmousedown = function(){
+    mousePressed=true;
+}
+document.body.onmouseup = function(){
+    mousePressed=false;
+}
+
+
+
 
 
 function rand(min, max){
@@ -140,6 +152,8 @@ class Particle{
         this.z+=this.velocity.z;
         this.mesh.position.set(this.x,this.y,this.z);
 
+        
+
         if(this.x>this.parent.xBound||this.x<-this.parent.xBound){
             this.velocity.x*=-1;
         }
@@ -174,7 +188,7 @@ class Context{
         this.edges = new THREE.EdgesGeometry(this.geometry)
         this.cube = new THREE.Mesh( this.geometry, this.material );
         this.line = new THREE.LineSegments(this.edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) )
-        
+        this.line.dynamic=true;
         //scene.add( this.cube );
         scene.add(this.line);
 
@@ -201,6 +215,20 @@ class Context{
         this.yBound = h/2;
         this.zBound = l/2;
 
+    }
+
+    reBuffer(){
+        scene.remove(this.line);
+        this.geometry = new THREE.BoxGeometry(this.length,this.width,this.height);
+        this.edges = new THREE.EdgesGeometry(this.geometry);
+        this.line = new THREE.LineSegments(this.edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+        
+        this.line.needsUpdate=true;
+        this.line.updateMatrix();
+        scene.add(this.line);
+        this.xBound = this.width/2;
+        this.yBound = this.height/2;
+        this.zBound = this.length/2;
     }
 
 
@@ -255,6 +283,13 @@ class Context{
 
     }
 
+    getTemperature(){
+
+
+        this.temperature = (this.getPressure()*this.getVolume())/(this.particleCount*IDEAL_GAS_CONSTANT);
+        return this.temperature;
+
+    }
 
     push(p){
         if(!this.init){return false;}
@@ -279,13 +314,24 @@ class HUD{
         this.height = h;
         this.context = cntxt;
 
+        this.standardCSS = "z-index: 265;position:absolute;color:aliceblue";
 
+        this._info = document.getElementById('info');
+
+        this._htmlParent = document.getElementById("hud");
+        
+        
     }
 
 
     render(){
+        this._info.innerHTML = "Information: <br />";
+        this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
+        this._info.innerHTML+="Volume: "+this.context.getVolume()+" nL<br />";
+        this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"<br />";
+        this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
 
-
+        this._info.innerHTML+="md: "+mousePressed;
     }
 
 
@@ -304,6 +350,85 @@ function burstOfGas(){
 
 var context = new Context(scene,100,100,100);
 var hud = new HUD(context, width, height);
+
+
+function reContainGas(){
+    for(var i = 0 ; i < context.chunks.length;i++){
+        for(var j = 0 ; j < context.chunks[i].length;j++){
+            var p = context.chunks[i][j];
+            
+            if(p.x>context.xBound){
+                p.x=context.xBound;
+            }else if (p.x<-context.xBound){
+                p.x=-context.xBound;
+            }
+            if(p.y>context.yBound){
+                p.y=context.yBound;
+            }else if (p.y<-context.yBound){
+                p.y=-context.yBound;
+            }
+            if(p.z>context.zBound){
+                p.z=context.zBound;
+            }else if (p.z<-context.zBound){
+                p.z=-context.zBound;
+            }
+            
+        }
+    }
+}
+function applyDeltaT(deltaPos){
+    for(var i = 0 ; i < context.chunks.length;i++){
+        for(var j = 0 ; j < context.chunks[i].length;j++){
+            var p = context.chunks[i][j];
+            if(deltaPos){
+                p.velocity.x*=1.000000001;
+                p.velocity.y*=1.000000001;
+                p.velocity.z*=1.000000001;
+            }else{
+                p.velocity.x/=1.000000001;
+                p.velocity.y/=1.000000001;
+                p.velocity.z/=1.000000001;
+            }
+        }
+    }
+}
+
+function decreaseVolume(){
+    if(context.getVolume()>MIN_VOLUME){
+        context.length--;
+        context.width--;
+        context.height--;
+        context.reBuffer();
+        reContainGas();
+    }
+    console.log("BRUH");
+
+
+}
+function increaseVoume(){
+    if(context.getVolume()<MAX_VOLUME){
+        context.length++;
+        context.width++;
+        context.height++;
+        context.reBuffer();
+    }
+    
+}
+function increaseTemperature(){
+    context.temperature++;
+    applyDeltaT(true);
+    
+}
+function decreaseTemperature(){
+    if(context.temperature>0){
+        context.temperature--;
+        applyDeltaT(false);
+    }
+    
+}
+
+
+
 
 
 var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.Color(0xffffff));

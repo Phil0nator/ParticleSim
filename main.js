@@ -7,6 +7,8 @@ var PARTICLES_MASS = 1;
 var PARTICLE_VERTS=15;
 var BALTZMANN = 1.380649; 
 var IDEAL_GAS_CONSTANT = 8.314;
+var MAX_PARTICLES = 2500;
+
 
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -30,14 +32,26 @@ camera.position.z = 400;
 camera.lookAt (new THREE.Vector3(0,0,0));
 controls.update();
 
+var light = new THREE.DirectionalLight( 0xffffff, 1 );
+light.position.set( 0, 50, 0 );
+scene.add(light);
+var light2 = new THREE.DirectionalLight( 0xffffff, 1 );
+light2.position.set( 50, 50, 50 );
+scene.add(light2);
+
+var helper = new THREE.DirectionalLightHelper( light2, 5 );
+//scene.add( helper );
+
 var pGeometry = new THREE.SphereGeometry( this.r, PARTICLE_VERTS, PARTICLE_VERTS );
-var pMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+var pMaterial = new THREE.MeshPhongMaterial( {color: 0xffff00} );
 var pMesh = new THREE.Mesh( pGeometry, pMaterial );
 
 
 function rand(min, max){
     return Math.random() * (max - min) + min;
 }
+
+
 
 
 class Particle{
@@ -154,14 +168,14 @@ class Context{
 
         this.init = true;
         this.geometry = new THREE.BoxGeometry(l,w,h);
-        this.material = new THREE.MeshBasicMaterial( { color: 0x111111, opacity:0.5, transparent:true } );
+        this.material = new THREE.MeshBasicMaterial( { color: 0x111111, opacity:0.0, transparent:true } );
         
         this.material.needsUpdate = true;
         this.edges = new THREE.EdgesGeometry(this.geometry)
         this.cube = new THREE.Mesh( this.geometry, this.material );
         this.line = new THREE.LineSegments(this.edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) )
         
-        scene.add( this.cube );
+        //scene.add( this.cube );
         scene.add(this.line);
 
         this.cube.position.set(0,0,0);
@@ -190,7 +204,12 @@ class Context{
     }
 
 
-    
+    clear(){
+
+        this.chunks = [new Array(0)];
+        this.currentChunk=0;
+        this.particleCount=0;
+    }
 
 
     update(){
@@ -222,9 +241,24 @@ class Context{
 
     }
 
+    getVolume(){
+
+        this.volume = this.length*this.width*this.height;
+        return this.volume;
+
+    }
+
+    getPressure(){
+
+        this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+        return this.pressure;
+
+    }
+
 
     push(p){
         if(!this.init){return false;}
+        if(this.particleCount+1 >= MAX_PARTICLES){return false;}
         this.chunks[this.availableChunk].push(p);
         if(this.chunks[this.availableChunk].length>=PARTICLES_PER_CHUNK){
             this.availableChunk++;
@@ -238,7 +272,23 @@ class Context{
 
 }
 
+class HUD{
 
+    constructor(cntxt, w,h){
+        this.width = w;
+        this.height = h;
+        this.context = cntxt;
+
+    }
+
+
+    render(){
+
+        
+    }
+
+
+}
 
 
 
@@ -252,6 +302,8 @@ function burstOfGas(){
 
 
 var context = new Context(scene,100,100,100);
+var hud = new HUD(context, width, height);
+
 
 var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.Color(0xffffff));
 //scene.add(gridXZ);
@@ -263,11 +315,14 @@ var animate = function () {
     controls.update();
     context.update();
 
-    if(context.particleCount<1000){
+    if(context.particleCount<500){
         context.push(new Particle(rand(-context.xBound,context.xBound),rand(-context.yBound,context.yBound),rand(-context.zBound,context.zBound),context));
     }
 
+    
+
     renderer.render( scene, camera );
+    hud.render();
 };
 
 

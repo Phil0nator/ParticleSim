@@ -1,3 +1,10 @@
+/////////////////////////
+//@author: Philo Kaulkin - https://github.com/Phil0nator
+//
+//
+//
+//
+////////////////////////
 //constants:
 var width = window.innerWidth;
 var height = window.innerHeight;
@@ -54,9 +61,13 @@ document.body.onmousedown = function(){
 document.body.onmouseup = function(){
     mousePressed=false;
 }
+function remove_linebreaks( str ) {
+    return str.replace( /[\r\n]+/gm, "" );
+}
 
-
-
+function truncDisp(s, dgs){
+    return remove_linebreaks(s.toString().substring(0, s.toString().indexOf(".") + dgs))   
+}
 
 
 function rand(min, max){
@@ -89,6 +100,13 @@ class Particle{
 
     }
 
+    destroy(){
+
+        scene.remove(this.mesh);
+        delete this;
+
+    }
+
     distTo(p){
 
         this.locVec = new THREE.Vector3(this.x,this.y,this.z);
@@ -97,15 +115,24 @@ class Particle{
 
     }
 
+    getSpeed(){
+
+        return this.velocity.length();
+
+    }
+
 
     collide(){
-
+        
         for(var i = 0; i < this.parent.chunks[this.currentChunk].length;i++){
             var other = this.parent.chunks[this.currentChunk][i];
             if(!other.alreadyBounced&&this!=other){
 
-                if(this.distTo(other)<2*PARTICLE_R){ //if collided
-                    
+                if(this.distTo(other)</*2 **/PARTICLE_R){ //if collided
+                    this.parent.colls++;
+                    this.alreadyBounced=true;
+                    other.alreadyBounced=true;
+
                     var dx = other.x-this.x;
                     var dy = other.y-this.y;
                     var dz = other.z-this.z;
@@ -146,13 +173,15 @@ class Particle{
 
     update(){
         if(!this.init){return false;}
-
+        this.alreadyBounced=false;
         this.x+=this.velocity.x;
         this.y+=this.velocity.y;
         this.z+=this.velocity.z;
         this.mesh.position.set(this.x,this.y,this.z);
 
-        
+        if(this.getSpeed()<.01&&this.parent.getTemperature()>0){
+            this.velocity = new THREE.Vector3(rand(-1,1),rand(-1,1),rand(-1,1));
+        }
 
         if(this.x>this.parent.xBound||this.x<-this.parent.xBound){
             this.velocity.x*=-1;
@@ -208,7 +237,7 @@ class Context{
         this.temperature = 298.15;
         this.pressure = 1;
         this.particleCount = 0;
-
+        this.colls = 0;
         //bounding:
 
         this.xBound = w/2;
@@ -233,10 +262,17 @@ class Context{
 
 
     clear(){
-
+        for(var i = 0 ; i < this.chunks.length;i++){
+            for(var j = 0 ; j < this.chunks[i].length;j++){
+                var p = this.chunks[i][j];
+                p.destroy();
+            }
+        }
         this.chunks = [new Array(0)];
         this.currentChunk=0;
         this.particleCount=0;
+        this.colls = 0;
+        this.availableChunk=0;
     }
 
 
@@ -279,16 +315,21 @@ class Context{
     getPressure(){
 
         this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
-        return this.pressure;
+        return truncDisp(this.pressure, 4);
 
     }
 
     getTemperature(){
 
 
-        this.temperature = (this.getPressure()*this.getVolume())/(this.particleCount*IDEAL_GAS_CONSTANT);
+        //this.temperature = (this.getPressure()*this.getVolume())/(this.particleCount*IDEAL_GAS_CONSTANT);
+        //return truncDisp(this.temperature,4);
         return this.temperature;
 
+    }
+
+    getRootMeanSquaredVelocity(){
+        return truncDisp(Math.sqrt(3*IDEAL_GAS_CONSTANT*this.getTemperature()),5);
     }
 
     push(p){
@@ -328,10 +369,10 @@ class HUD{
         this._info.innerHTML = "Information: <br />";
         this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
         this._info.innerHTML+="Volume: "+this.context.getVolume()+" nL<br />";
-        this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"<br />";
+        this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
         this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
-
-        this._info.innerHTML+="md: "+mousePressed;
+        this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
+        this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
     }
 
 
@@ -381,13 +422,13 @@ function applyDeltaT(deltaPos){
         for(var j = 0 ; j < context.chunks[i].length;j++){
             var p = context.chunks[i][j];
             if(deltaPos){
-                p.velocity.x*=1.000000001;
-                p.velocity.y*=1.000000001;
-                p.velocity.z*=1.000000001;
+                p.velocity.x*=1.001;
+                p.velocity.y*=1.001;
+                p.velocity.z*=1.001;
             }else{
-                p.velocity.x/=1.000000001;
-                p.velocity.y/=1.000000001;
-                p.velocity.z/=1.000000001;
+                p.velocity.x/=1.001;
+                p.velocity.y/=1.001;
+                p.velocity.z/=1.001;
             }
         }
     }
@@ -426,9 +467,17 @@ function decreaseTemperature(){
     }
     
 }
+function _addParticles(){
+    for(var i = 0 ; i < 5; i++){
+        context.push(new Particle(rand(-context.xBound,context.xBound),rand(-context.yBound,context.yBound),rand(-context.zBound,context.zBound),context));
+    }
+}
+function _clear(){
+    context.clear();
+}
+function _release(){
 
-
-
+}
 
 
 var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.Color(0xffffff));
@@ -440,11 +489,6 @@ var animate = function () {
     requestAnimationFrame( animate );
     controls.update();
     context.update();
-
-    if(context.particleCount<500){
-        context.push(new Particle(rand(-context.xBound,context.xBound),rand(-context.yBound,context.yBound),rand(-context.zBound,context.zBound),context));
-    }
-
     
 
     renderer.render( scene, camera );

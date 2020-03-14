@@ -279,12 +279,13 @@ class HUD{
         this.height = h;
         this.context = cntxt;
 
+
     }
 
 
     render(){
 
-        
+
     }
 
 

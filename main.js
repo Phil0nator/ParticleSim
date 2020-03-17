@@ -18,6 +18,32 @@ var MAX_PARTICLES = 2500;
 var MIN_VOLUME = 1000;
 var MAX_VOLUME = 1000000;
 
+var CONSTANT = "NONE";
+var PAUSED = false;
+
+
+//buttons:
+var DVactive=false;
+var IVactive = false;
+var APactive = false;
+var Cactive = false;
+var ITactive=false;
+var DTactive =false;
+
+function DVMD(){DVactive=true;}
+function DVMU(){DVactive=false;}
+function IVMD(){IVactive=true;}
+function IVMU(){IVactive=false;}
+function APMD(){APactive=true;}
+function APMU(){APactive=false;}
+function CMD(){Cactive=true;}
+function CMU(){Cactive=false;}
+function ITMD(){ITactive=true;}
+function ITMU(){ITactive=false;}
+function DTMD(){DTactive=true;}
+function DTMU(){DTactive=false;}
+
+
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 var renderer = new THREE.WebGLRenderer();
@@ -54,13 +80,8 @@ var pGeometry = new THREE.SphereGeometry( this.r, PARTICLE_VERTS, PARTICLE_VERTS
 var pMaterial = new THREE.MeshPhongMaterial( {color: 0xffff00} );
 var pMesh = new THREE.Mesh( pGeometry, pMaterial );
 
-var mousePressed = false;
-document.body.onmousedown = function(){
-    mousePressed=true;
-}
-document.body.onmouseup = function(){
-    mousePressed=false;
-}
+
+
 function remove_linebreaks( str ) {
     return str.replace( /[\r\n]+/gm, "" );
 }
@@ -73,9 +94,6 @@ function truncDisp(s, dgs){
 function rand(min, max){
     return Math.random() * (max - min) + min;
 }
-
-
-
 
 class Particle{
 
@@ -203,8 +221,6 @@ class Particle{
 
 }
 
-
-
 class Context{
 
     constructor(scene,l,w,h){
@@ -279,7 +295,7 @@ class Context{
     update(){
         if(!this.init){return false;}
         if(this.particleCount==0){return false;}
-
+        
         for(var i = 0; i < this.chunks[this.currentChunk].length;i++){
 
             this.chunks[this.currentChunk][i].update();
@@ -387,8 +403,6 @@ function burstOfGas(){
         context.push(new Particle(0,0,0,context));
     }
 }
-
-
 var context = new Context(scene,100,100,100);
 var hud = new HUD(context, width, height);
 
@@ -434,6 +448,8 @@ function applyDeltaT(deltaPos){
     }
 }
 
+
+//<USER CONTROLS>
 function decreaseVolume(){
     if(context.getVolume()>MIN_VOLUME){
         context.length--;
@@ -479,6 +495,29 @@ function _release(){
 
 }
 
+function handleButtons(){
+
+    if(DVactive){
+        decreaseVolume();
+    }else if(IVactive){
+        increaseVoume();
+    }else if (DTactive){
+        decreaseTemperature();
+    }else if(ITactive){
+        increaseTemperature();
+    }else if (APactive){
+        _addParticles();
+    }else if (Cactive){
+        _clear;
+    }else{
+
+    }
+
+
+}
+
+//</USER CONTROLS>
+
 
 var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.Color(0xffffff));
 //scene.add(gridXZ);
@@ -488,8 +527,10 @@ var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.C
 var animate = function () {
     requestAnimationFrame( animate );
     controls.update();
-    context.update();
-    
+    handleButtons();
+    if(!PAUSED){
+        context.update();
+    }
 
     renderer.render( scene, camera );
     hud.render();

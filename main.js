@@ -21,6 +21,7 @@ var MAX_VOLUME = 1000000;
 var CONSTANT = "NONE";
 var PAUSED = false;
 
+let gridXZ;
 
 //buttons:
 var DVactive=false;
@@ -43,8 +44,15 @@ function ITMU(){ITactive=false;}
 function DTMD(){DTactive=true;}
 function DTMU(){DTactive=false;}
 
+function TG(){gridXZ.visible=!gridXZ.visible;}
+
 
 var scene = new THREE.Scene();
+scene.background = new THREE.Color( 0x555555 );
+//var fog = 1000;
+//scene.fog = new THREE.Fog( 0xffffff, fog, fog + 1000 );
+var Amblight = new THREE.AmbientLight( 0x404040 ); // soft white light
+scene.add( Amblight );
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -59,7 +67,8 @@ controls.enableZoom = true;
 controls.autoRotate = false;
 controls.enableKeys=false;
 controls.enablePan =false;
-
+controls.maxPolarAngle = Math.PI/2;
+controls.maxDistance = 1000;
 
 camera.position.y = 160;
 camera.position.z = 400;
@@ -382,13 +391,23 @@ class HUD{
 
 
     render(){
-        this._info.innerHTML = "Information: <br />";
-        this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
-        this._info.innerHTML+="Volume: "+this.context.getVolume()+" nL<br />";
-        this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
-        this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
-        this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
-        this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
+        if(this.context.particleCount>0){
+            this._info.innerHTML = "Information: <br />";
+            this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
+            this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+this.context.width+"nm x "+this.context.height+"nm x"+this.context.length+"nm )<br />";
+            this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
+            this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
+            this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
+            this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
+        }else{
+            this._info.innerHTML = "Information: <br />";
+            this._info.innerHTML+="Pressure: -- <br />";
+            this._info.innerHTML+="Volume: --<br />";
+            this._info.innerHTML+="Temperature: -- <br />";
+            this._info.innerHTML+="Particles: 0<br />";
+            this._info.innerHTML+="Root-Mean-Squared Velocity: -- <br />";
+            this._info.innerHTML+="Collisions: 0 <br />";
+        }
     }
 
 
@@ -518,9 +537,39 @@ function handleButtons(){
 
 //</USER CONTROLS>
 
+//<Maintain Aspect>
+window.addEventListener( 'resize', onWindowResize, false );
 
-var gridXZ = new THREE.GridHelper(100, 10,new THREE.Color(0xff0000), new THREE.Color(0xffffff));
-//scene.add(gridXZ);
+function onWindowResize(){
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    width = window.innerWidth;
+    height = window.innerHeight;
+}
+//</Maintain Aspect>
+
+
+
+
+
+
+//<AMBIENT OBJECT>
+var ambientObjectGeometry = new THREE.PlaneGeometry(9000,9000);
+ambientObjectGeometry.rotateX(-Math.PI/2);
+ambientObjectGeometry.translate(0,-52,0);
+var ambientObjectMaterial = new THREE.MeshPhongMaterial({color: 0x110022});
+var ambientObject = new THREE.Mesh(ambientObjectGeometry, ambientObjectMaterial);
+ambientObject.recieveShadow=true;
+scene.add(ambientObject);
+
+//</AMBIENT OBJECT>
+
+gridXZ = new THREE.GridHelper(500, 50,new THREE.Color(0xFF0000), new THREE.Color(0x007700));
+gridXZ.position.y-=51;
+scene.add(gridXZ);
 
 //burstOfGas();
 

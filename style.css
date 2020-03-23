@@ -175,6 +175,21 @@ body{
 
 }
 
+.impossible{
+    position: relative;
+
+    text-align:center;
+    background-color: darkred;
+    color:white;
+    cursor: not-allowed;
+    height:75%;
+    width:15%;
+
+    border: 2px solid #000000;    
+    transition-duration: 0.25s;
+    font-size: 1vw;
+    border-radius: 8px;
+}
 
 .constant:hover{
 
@@ -191,10 +206,8 @@ body{
 }
 .constant:disabled{
 
-    background-color: darkred;
-    color:white;
-    cursor: not-allowed;
+    background-color: #AAFF55;
+    color:#110011;
+
 
 }
-
-.constant:

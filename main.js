@@ -8,10 +8,10 @@
 //constants:
 var width = window.innerWidth;
 var height = window.innerHeight;
-var PARTICLE_R = 5;
+var PARTICLE_R =.5;
 var PARTICLES_PER_CHUNK = 25;
 var PARTICLES_MASS = 1;
-var PARTICLE_VERTS=15;
+var PARTICLE_VERTS=6;
 var BALTZMANN = 1.380649; 
 var IDEAL_GAS_CONSTANT = 8.314;
 var MAX_PARTICLES = 2500;
@@ -85,7 +85,7 @@ scene.add(light2);
 var helper = new THREE.DirectionalLightHelper( light2, 5 );
 //scene.add( helper );
 
-var pGeometry = new THREE.SphereGeometry( this.r, PARTICLE_VERTS, PARTICLE_VERTS );
+var pGeometry = new THREE.SphereGeometry( PARTICLE_R, PARTICLE_VERTS, PARTICLE_VERTS );
 var pMaterial = new THREE.MeshPhongMaterial( {color: 0xffff00} );
 var pMesh = new THREE.Mesh( pGeometry, pMaterial );
 
@@ -98,7 +98,9 @@ function remove_linebreaks( str ) {
 function truncDisp(s, dgs){
     return remove_linebreaks(s.toString().substring(0, s.toString().indexOf(".") + dgs))   
 }
-
+function getCONSTANT(){
+    return "C"+CONSTANT;
+}
 
 function rand(min, max){
     return Math.random() * (max - min) + min;
@@ -263,6 +265,17 @@ class Context{
         this.pressure = 1;
         this.particleCount = 0;
         this.colls = 0;
+
+
+
+        this.constant_temp = this.temperature;
+        this.constant_pressure = 0;
+        this.constant_volume = this.volume;
+        this.constant_pressurevtemp = 0;
+        this.constant_pressurevvol = 0;
+
+
+
         //bounding:
 
         this.xBound = w/2;
@@ -283,6 +296,9 @@ class Context{
         this.xBound = this.width/2;
         this.yBound = this.height/2;
         this.zBound = this.length/2;
+
+        
+
     }
 
 
@@ -328,18 +344,82 @@ class Context{
         this.volume = this.length*this.width*this.height;
 
 
+
+        switch(getCONSTANT()){ //handle changing of constant values
+            case "CNONE":
+                this.constant_temp = this.temperature;
+                this.constant_pressure = this.pressure;
+                this.constant_volume = this.volume;
+                this.constant_pressurevtemp = this.pressure / this.temperature;
+                this.constant_pressurevvol = this.pressure / this.volume;
+                break;
+            case "CTEMPERATURE":
+                //this.constant_temp = this.temperature;
+                this.constant_pressure = this.pressure;
+                this.constant_volume = this.volume;
+                this.constant_pressurevtemp = this.pressure / this.temperature;
+                this.constant_pressurevvol = this.pressure / this.volume;
+                break;
+            case "CVOLUME":
+                this.constant_temp = this.temperature;
+                this.constant_pressure = this.pressure;
+                //this.constant_volume = this.volume;
+                this.constant_pressurevtemp = this.pressure / this.temperature;
+                this.constant_pressurevvol = this.pressure / this.volume;
+                break;
+            case "CPRESSURE vs VOLUME":
+                this.constant_temp = this.temperature;
+                //this.constant_pressure = this.pressure;
+                //this.constant_volume = this.volume;
+                this.constant_pressurevtemp = this.pressure / this.temperature;
+                //this.constant_pressurevvol = this.pressure / this.volume;
+                if(this.pressure != this.constant_pressure){
+                    
+                    var deltaVol = (this.pressure-this.constant_pressure);
+                    this.length+=deltaVol;
+                    this.width+=deltaVol;
+                    this.height+=deltaVol;
+                    this.reBuffer();
+                }
+                break;
+
+                
+                
+
+
+            case "CPRESSURE vs TEMPERATURE":
+                //this.constant_temp = this.temperature;
+                //this.constant_pressure = this.pressure;
+                this.constant_volume = this.volume;
+                //this.constant_pressurevtemp = this.pressure / this.temperature;
+                this.constant_pressurevvol = this.pressure / this.volume;
+
+
+                break;
+        }
+
+
+
     }
 
     getVolume(){
+        if(getCONSTANT()!="CVOLUME"){
+            this.volume = this.length*this.width*this.height;
+        }
 
-        this.volume = this.length*this.width*this.height;
-        return this.volume;
+
+        return truncDisp(this.volume, 4);
+
 
     }
 
     getPressure(){
-
-        this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+        if(getCONSTANT() != "CPRESSURE vs VOLUME" && getCONSTANT() != "CPRESSURE vs TEMPERATURE"){
+            this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+        }else{
+            this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+            return(truncDisp(this.constant_pressure, 4));
+        }
         return truncDisp(this.pressure, 4);
 
     }
@@ -394,7 +474,7 @@ class HUD{
         if(this.context.particleCount>0){
             this._info.innerHTML = "Information: <br />";
             this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
-            this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+this.context.width+"nm x "+this.context.height+"nm x"+this.context.length+"nm )<br />";
+            this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+truncDisp(this.context.width, 2)+"nm x "+truncDisp(this.context.height, 2)+"nm x "+truncDisp(this.context.length, 2)+"nm )<br />";
             this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
             this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
             this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
@@ -424,7 +504,7 @@ function burstOfGas(){
         context.push(new Particle(0,0,0,context));
     }
 }
-var context = new Context(scene,100,100,100);
+var context = new Context(scene,50,50,50);
 var hud = new HUD(context, width, height);
 
 
@@ -505,12 +585,18 @@ function decreaseTemperature(){
     
 }
 function _addParticles(){
-    for(var i = 0 ; i < 5; i++){
-        context.push(new Particle(rand(-context.xBound,context.xBound),rand(-context.yBound,context.yBound),rand(-context.zBound,context.zBound),context));
+    if(context.particleCount<MAX_PARTICLES-5){
+        for(var i = 0 ; i < 5; i++){
+            context.push(new Particle(rand(-context.xBound,context.xBound),rand(-context.yBound,context.yBound),rand(-context.zBound,context.zBound),context));
+        }   
     }
 }
 function _clear(){
     context.clear();
+    
+
+    CONSTANT="NONE";
+    updateConstantStatus();
 }
 function _release(){
 
@@ -539,6 +625,7 @@ function handleButtons(){
 
 //constants
 function enableAll(){
+
     document.getElementById("CNONE").disabled = false;
     document.getElementById("CTEMPERATURE").disabled = false;
     document.getElementById("CVOLUME").disabled = false;
@@ -552,15 +639,17 @@ function updateConstantStatus(){
     enableAll();
     
     if(context.particleCount < 1){
-        document.getElementById("CTEMPERATURE").disabled = true;
-        document.getElementById("CPRESSURE vs VOLUME").disabled = true;
-        document.getElementById("CPRESSURE vs TEMPERATURE").disabled = true;
+        document.getElementById("CTEMPERATURE").className = "impossible";
+        document.getElementById("CPRESSURE vs VOLUME").className = "impossible";
+        document.getElementById("CPRESSURE vs TEMPERATURE").className = "impossible";
+    }else{
+        document.getElementById("CTEMPERATURE").className = "constant";
+        document.getElementById("CPRESSURE vs VOLUME").className = "constant";
+        document.getElementById("CPRESSURE vs TEMPERATURE").className = "constant";
     }
 
     document.getElementById("C"+CONSTANT).disabled = true;
-    document.getElementById("C"+CONSTANT).style.backgroundColor = "#AAFF55";
-    document.getElementById("C"+CONSTANT).style.color = "#110011";
-
+    
 
     
 

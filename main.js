@@ -130,7 +130,7 @@ class Particle{
     destroy(){
 
         scene.remove(this.mesh);
-        delete this;
+        //delete this;
 
     }
 
@@ -399,6 +399,7 @@ class HUD{
             this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
             this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
             this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
+            this._info.innerHTML+="Constant Variable: "+CONSTANT+"<br />";
         }else{
             this._info.innerHTML = "Information: <br />";
             this._info.innerHTML+="Pressure: -- <br />";
@@ -407,6 +408,7 @@ class HUD{
             this._info.innerHTML+="Particles: 0<br />";
             this._info.innerHTML+="Root-Mean-Squared Velocity: -- <br />";
             this._info.innerHTML+="Collisions: 0 <br />";
+            this._info.innerHTML+="Constant Variable: "+CONSTANT+"<br />";
         }
     }
 
@@ -535,6 +537,52 @@ function handleButtons(){
 
 }
 
+//constants
+function enableAll(){
+    document.getElementById("CNONE").disabled = false;
+    document.getElementById("CTEMPERATURE").disabled = false;
+    document.getElementById("CVOLUME").disabled = false;
+    document.getElementById("CPRESSURE vs VOLUME").disabled = false;
+    document.getElementById("CPRESSURE vs TEMPERATURE").disabled = false;
+
+
+}
+
+function updateConstantStatus(){
+    enableAll();
+    
+    if(context.particleCount < 1){
+        document.getElementById("CTEMPERATURE").disabled = true;
+        document.getElementById("CPRESSURE vs VOLUME").disabled = true;
+        document.getElementById("CPRESSURE vs TEMPERATURE").disabled = true;
+    }
+
+    document.getElementById("C"+CONSTANT).disabled = true;
+    document.getElementById("C"+CONSTANT).style.backgroundColor = "#AAFF55";
+    document.getElementById("C"+CONSTANT).style.color = "#110011";
+
+
+    
+
+
+
+}
+
+function _setConstant(n){
+
+    document.getElementById("C"+CONSTANT).disabled = false;
+    document.getElementById("C"+CONSTANT).style.backgroundColor = "#008CBA";
+    document.getElementById("C"+CONSTANT).style.color = "#000000";
+
+
+    CONSTANT = n;
+    
+    updateConstantStatus();
+
+}
+
+
+
 //</USER CONTROLS>
 
 //<Maintain Aspect>
@@ -576,6 +624,7 @@ scene.add(gridXZ);
 var animate = function () {
     requestAnimationFrame( animate );
     controls.update();
+    updateConstantStatus();
     handleButtons();
     if(!PAUSED){
         context.update();

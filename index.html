@@ -16,11 +16,11 @@
             </p>
             <button id = "TG" onclick="TG()" class="button">Toggle Grid</button>
 
-            <button id="IV" onmousedown="IVMD()" onmouseup="IVMU()"class="button">Increase Volume</button>
-            <button id= "DV" onmousedown="DVMD()" onmouseup="DVMU()"class="button">Decrease Volume</button>
-            <button id = "IT" onmousedown="ITMD()" onmouseup="ITMU()"class="button">Increase Temperature</button>
-            <button id = "DT" onmousedown="DTMD()" onmouseup="DTMU()"class="button">Decrease Temperature</button>
-            <button id = "AP" onmousedown="APMD()" onmouseup="APMU()"class="button">Add Particles</button>
+            <button id="IV" onmousedown="IVMD()" onmouseup="IVMU()"                class="button">Increase Volume</button>
+            <button id= "DV" onmousedown="DVMD()" onmouseup="DVMU()"               class="button">Decrease Volume</button>
+            <button id = "IT" onmousedown="ITMD()" onmouseup="ITMU()"              class="button">Increase Temperature</button>
+            <button id = "DT" onmousedown="DTMD()" onmouseup="DTMU()"              class="button">Decrease Temperature</button>
+            <button id = "AP" onmousedown="APMD()" onmouseup="APMU()"              class="button">Add Particles</button>
             <button id = "CP" onmousedown="_clear()" class="button">     Reset     </button>
             <button id = "RP" onmousedown="RPMD()" onmouseup="RPMU()" class="button">Remove Particles</button>
             
@@ -28,17 +28,12 @@
 
 
         </div>
-        <div id="main">
-            <script src="three/three.js"></script>
-            <script src="three/OrbitControls.js"></script>
-            <script src ="main.js"></script>
-        </div>
         <div id="constants">
 
             <span id="panel">
             </span>
             
-            <button class="constant" id="CNONE" onclick="_setConstant('NONE')" disabled=true>None</button>
+            <button class="constant" id="CNONE" onclick="_setConstant('NONE')" disabled>None</button>
             <button class="constant" id="CVOLUME" onclick="_setConstant('VOLUME')">Volume</button>
             <button class="constant" id="CTEMPERATURE" onclick="_setConstant('TEMPERATURE')">Temperature</button>
 
@@ -48,6 +43,12 @@
 
 
         </div>
+        <div id="main">
+            <script src="three/three.js"></script>
+            <script src="three/OrbitControls.js"></script>
+            <script src ="main.js"></script>
+        </div>
+        
         <div id = "foot">
             <p style="z-index: 265;position:absolute;color:aliceblue;top:95%;left:90%">
                 By Philo Kaulkin

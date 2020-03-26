@@ -346,6 +346,8 @@ class Context{
         if(!this.init){return false;}
         if(this.particleCount==0){
             document.getElementById("RP").disabled = true;
+            
+            document.getElementById("CNONE").onclick();
             return false;
         }else{
             document.getElementById("RP").disabled = false;
@@ -535,7 +537,7 @@ class HUD{ //handler for updating DOM elements
             this._info.innerHTML+="Particles: 0<br />";
             this._info.innerHTML+="Root-Mean-Squared Velocity: -- <br />";
             this._info.innerHTML+="Collisions: 0 <br />";
-            this._info.innerHTML+="Constant Variable: "+CONSTANT+"<br />";
+            this._info.innerHTML+="Constant Variable: <u>"+CONSTANT+"</u><br />";
         }
     }
 
@@ -726,11 +728,6 @@ function updateConstantStatus(){
 
 function _setConstant(n){
 
-    document.getElementById("C"+CONSTANT).disabled = false;
-    document.getElementById("C"+CONSTANT).style.backgroundColor = "#008CBA";
-    document.getElementById("C"+CONSTANT).style.color = "#000000";
-
-
     CONSTANT = n;
     
     updateConstantStatus();
@@ -776,7 +773,6 @@ gridXZ.position.y-=51;
 scene.add(gridXZ);
 
 //burstOfGas();
-
 var animate = function () {
     requestAnimationFrame( animate );
     controls.update();

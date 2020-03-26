@@ -130,18 +130,30 @@ body{
 
 }
 
-#DV:hover, #IV:hover,#DT:hover,#IT:hover,#CP:hover,#AP:hover, #TG:hover, #RP:hover{
+#DV:hover, #IV:hover,#DT:hover,#IT:hover,#CP:hover,#AP:hover,  #RP:hover{
 
     background-color: #4CAF50; /* Green */
     color: white;
+    left:89%;
+
 
 }
 
-#DV:active, #IV:active, #IT:active, #DT:active, #CP:active, #AP:active, #TG:active, #RP:active{
+#DV:active, #IV:active, #IT:active, #DT:active, #CP:active, #AP:active,  #RP:active{
 
     background-color: aquamarine;
     color: black;
+    left:88%;
 
+}
+
+#TG:hover{
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+#TG:active{
+    background-color: aquamarine;
+    color: black;
 }
 
 #RP:disabled{

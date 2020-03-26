@@ -30,6 +30,7 @@ var APactive = false;
 var Cactive = false;
 var ITactive=false;
 var DTactive =false;
+var RPactive=false;
 
 function DVMD(){DVactive=true;}
 function DVMU(){DVactive=false;}
@@ -43,6 +44,8 @@ function ITMD(){ITactive=true;}
 function ITMU(){ITactive=false;}
 function DTMD(){DTactive=true;}
 function DTMU(){DTactive=false;}
+function RPMD(){RPactive=true;}
+function RPMU(){RPactive=false;}
 
 function TG(){gridXZ.visible=!gridXZ.visible;}
 
@@ -214,12 +217,15 @@ class Particle{
 
         if(this.x>this.parent.xBound||this.x<-this.parent.xBound){
             this.velocity.x*=-1;
+            this.parent.colls++;
         }
         if(this.y>this.parent.yBound||this.y<-this.parent.yBound){
             this.velocity.y*=-1;
+            this.parent.colls++;
         }
         if(this.z>this.parent.zBound||this.z<-this.parent.zBound){
             this.velocity.z*=-1;
+            this.parent.colls++;
         }
 
 
@@ -284,7 +290,26 @@ class Context{
 
     }
 
-    reBuffer(){
+    pop(){ //remove last particle
+        if(!this.init){return false;}
+        if(this.particleCount<=0){
+            RPactive=false;
+            return;
+        }
+        if(this.chunks[this.availableChunk].length>0){
+            this.chunks[this.availableChunk][this.chunks[this.availableChunk].length-1].destroy();
+            this.chunks[this.availableChunk].pop();
+            this.particleCount--;
+        }else{
+            this.availableChunk--;
+            this.pop();
+        }
+
+
+
+    }
+
+    reBuffer(){ //resize physical geometry
         scene.remove(this.line);
         this.geometry = new THREE.BoxGeometry(this.length,this.width,this.height);
         this.edges = new THREE.EdgesGeometry(this.geometry);
@@ -302,7 +327,7 @@ class Context{
     }
 
 
-    clear(){
+    clear(){ //remove all particles
         for(var i = 0 ; i < this.chunks.length;i++){
             for(var j = 0 ; j < this.chunks[i].length;j++){
                 var p = this.chunks[i][j];
@@ -317,10 +342,17 @@ class Context{
     }
 
 
-    update(){
+    update(){ //frame update
         if(!this.init){return false;}
-        if(this.particleCount==0){return false;}
-        
+        if(this.particleCount==0){
+            document.getElementById("RP").disabled = true;
+            return false;
+        }else{
+            document.getElementById("RP").disabled = false;
+
+        }
+        if(this.temperature <=0){return false;}
+
         for(var i = 0; i < this.chunks[this.currentChunk].length;i++){
 
             this.chunks[this.currentChunk][i].update();
@@ -340,6 +372,7 @@ class Context{
         this.currentChunk++;
         if(this.currentChunk>=this.chunks.length){
             this.currentChunk=0;
+            reContainGas();
         }
         this.volume = this.length*this.width*this.height;
 
@@ -393,7 +426,16 @@ class Context{
                 this.constant_volume = this.volume;
                 //this.constant_pressurevtemp = this.pressure / this.temperature;
                 this.constant_pressurevvol = this.pressure / this.volume;
+                if(this.pressure != this.constant_pressure && Math.abs(this.pressure - this.constant_pressure)>.01){
+                    
+                    if(this.pressure>this.constant_pressure){
+                        decreaseTemperature();
 
+                    }else{
+                        increaseTemperature();
+                    }
+                    
+                }
 
                 break;
         }
@@ -402,14 +444,13 @@ class Context{
 
     }
 
-    getVolume(){
+    getVolume(){ 
         if(getCONSTANT()!="CVOLUME"){
             this.volume = this.length*this.width*this.height;
         }
 
 
-        return truncDisp(this.volume, 4);
-
+        return this.volume;
 
     }
 
@@ -437,7 +478,7 @@ class Context{
         return truncDisp(Math.sqrt(3*IDEAL_GAS_CONSTANT*this.getTemperature()),5);
     }
 
-    push(p){
+    push(p){ //add new particle (given by p)
         if(!this.init){return false;}
         if(this.particleCount+1 >= MAX_PARTICLES){return false;}
         this.chunks[this.availableChunk].push(p);
@@ -453,7 +494,7 @@ class Context{
 
 }
 
-class HUD{
+class HUD{ //handler for updating DOM elements
 
     constructor(cntxt, w,h){
         this.width = w;
@@ -466,11 +507,17 @@ class HUD{
 
         this._htmlParent = document.getElementById("hud");
         
-        
+        this.frameDelay=0;
     }
 
 
-    render(){
+    render(){ //frame update
+        this.frameDelay++;
+        if(this.frameDelay<10){
+            return;
+        }else{
+            this.frameDelay=0;
+        }
         if(this.context.particleCount>0){
             this._info.innerHTML = "Information: <br />";
             this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
@@ -536,14 +583,26 @@ function applyDeltaT(deltaPos){
     for(var i = 0 ; i < context.chunks.length;i++){
         for(var j = 0 ; j < context.chunks[i].length;j++){
             var p = context.chunks[i][j];
+            
+
             if(deltaPos){
-                p.velocity.x*=1.001;
-                p.velocity.y*=1.001;
-                p.velocity.z*=1.001;
+                p.velocity.x*=1.01;
+                p.velocity.y*=1.01;
+                p.velocity.z*=1.01;
+                if(context.temperature == 0){
+                    p.velocity.x=.1;
+                    p.velocity.y=.1;
+                    p.velocity.z=.1;
+                }
             }else{
-                p.velocity.x/=1.001;
-                p.velocity.y/=1.001;
-                p.velocity.z/=1.001;
+                p.velocity.x/=1.01;
+                p.velocity.y/=1.01;
+                p.velocity.z/=1.01;
+                if(context.temperature == 0){
+                    p.velocity.x=0;
+                    p.velocity.y=0;
+                    p.velocity.z=0;
+                }
             }
         }
     }
@@ -573,14 +632,19 @@ function increaseVoume(){
     
 }
 function increaseTemperature(){
-    context.temperature++;
-    applyDeltaT(true);
+    if(context.temperature < 500){
+        context.temperature++;
+        applyDeltaT(true);
+    }
     
 }
 function decreaseTemperature(){
     if(context.temperature>0){
         context.temperature--;
         applyDeltaT(false);
+    }
+    if(context.temperature < 0){
+        context.temperature=0;
     }
     
 }
@@ -592,14 +656,15 @@ function _addParticles(){
     }
 }
 function _clear(){
-    context.clear();
+    //context.clear();
     
 
-    CONSTANT="NONE";
-    updateConstantStatus();
+    //CONSTANT="NONE";
+    //updateConstantStatus();
+    window.location.reload();
 }
 function _release(){
-
+    context.pop();
 }
 
 function handleButtons(){
@@ -616,6 +681,8 @@ function handleButtons(){
         _addParticles();
     }else if (Cactive){
         _clear;
+    }else if (RPactive){
+        _release();
     }else{
 
     }

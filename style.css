@@ -114,21 +114,39 @@ body{
 
 }
 
-#DV:hover, #IV:hover,#DT:hover,#IT:hover,#CP:hover,#AP:hover, #TG:hover{
+#RP{
+    position: absolute;
+    z-index: 265;
+    top:70%;
+    left:90%;
+    height:9%;
+    width:10%;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50;    
+    transition-duration: 0.4s;
+    font-size: 1vw;
+    border-radius: 8px;
+
+}
+
+#DV:hover, #IV:hover,#DT:hover,#IT:hover,#CP:hover,#AP:hover, #TG:hover, #RP:hover{
 
     background-color: #4CAF50; /* Green */
     color: white;
 
 }
 
-#DV:active, #IV:active, #IT:active, #DT:active, #CP:active, #AP:active, #TG:active{
+#DV:active, #IV:active, #IT:active, #DT:active, #CP:active, #AP:active, #TG:active, #RP:active{
 
     background-color: aquamarine;
     color: black;
 
 }
 
-
+#RP:disabled{
+    cursor:not-allowed;
+}
 
 
 #constants{

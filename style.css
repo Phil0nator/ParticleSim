@@ -205,6 +205,22 @@ body{
 
 }
 
+#constant_hint{
+    
+    position: relative;
+
+    text-align:center;
+    
+    color:white;
+
+
+    height:75%;
+    width:15%;
+    border: none;    
+    font-size: 1.5vw;
+
+}
+
 .impossible{
     position: relative;
 

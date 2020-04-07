@@ -13,7 +13,7 @@ var PARTICLES_PER_CHUNK = 25;
 var PARTICLES_MASS = 1;
 var PARTICLE_VERTS=6;
 var BALTZMANN = 1.380649; 
-var IDEAL_GAS_CONSTANT = 8.314;
+var IDEAL_GAS_CONSTANT = 8.205736608096;
 var MAX_PARTICLES = 2500;
 var MIN_VOLUME = 1000;
 var MAX_VOLUME = 1000000;
@@ -523,7 +523,7 @@ class HUD{ //handler for updating DOM elements
         if(this.context.particleCount>0){
             this._info.innerHTML = "Information: <br />";
             this._info.innerHTML+="Pressure: "+this.context.getPressure()+" atm<br />";
-            this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+truncDisp(this.context.width, 2)+"nm x "+truncDisp(this.context.height, 2)+"nm x "+truncDisp(this.context.length, 2)+"nm )<br />";
+            this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+truncDisp(this.context.width, 3)+"nm x "+truncDisp(this.context.height, 3)+"nm x "+truncDisp(this.context.length, 3)+"nm )<br />";
             this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
             this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
             this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
@@ -671,13 +671,13 @@ function _release(){
 
 function handleButtons(){
 
-    if(DVactive){
+    if(DVactive && getCONSTANT()!="CVOLUME"){
         decreaseVolume();
-    }else if(IVactive){
+    }else if(IVactive&&getCONSTANT()!="CVOLUME"){
         increaseVoume();
-    }else if (DTactive){
+    }else if (DTactive&&getCONSTANT()!="CTEMPERATURE"){
         decreaseTemperature();
-    }else if(ITactive){
+    }else if(ITactive&&getCONSTANT()!="CTEMPERATURE"){
         increaseTemperature();
     }else if (APactive){
         _addParticles();

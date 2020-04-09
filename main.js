@@ -8,12 +8,14 @@
 //constants:
 var width = window.innerWidth;
 var height = window.innerHeight;
-var PARTICLE_R =.5;
+var PARTICLE_R =.3;
 var PARTICLES_PER_CHUNK = 25;
 var PARTICLES_MASS = 1;
 var PARTICLE_VERTS=6;
 var BALTZMANN = 1.380649; 
-var IDEAL_GAS_CONSTANT = 8.205736608096;
+//var IDEAL_GAS_CONSTANT = 8.205736608096;
+var IDEAL_GAS_CONSTANT = exactMath.formula("8.2057366080960e+22",{});
+var MOLES_CONSTANT = exactMath.formula("6.0221409e+23",{});
 var MAX_PARTICLES = 2500;
 var MIN_VOLUME = 1000;
 var MAX_VOLUME = 1000000;
@@ -455,12 +457,17 @@ class Context{
         return this.volume;
 
     }
+    getMoles(){
+
+        return this.particleCount/MOLES_CONSTANT;
+
+    }
 
     getPressure(){
         if(getCONSTANT() != "CPRESSURE vs VOLUME" && getCONSTANT() != "CPRESSURE vs TEMPERATURE"){
-            this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+            this.pressure = (this.getMoles()*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
         }else{
-            this.pressure = (this.particleCount*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
+            this.pressure = (this.getMoles()*this.temperature*IDEAL_GAS_CONSTANT)/this.volume;
             return(truncDisp(this.constant_pressure, 4));
         }
         return truncDisp(this.pressure, 4);
@@ -477,7 +484,7 @@ class Context{
     }
 
     getRootMeanSquaredVelocity(){
-        return truncDisp(Math.sqrt(3*IDEAL_GAS_CONSTANT*this.getTemperature()),5);
+        return truncDisp(Math.sqrt((((3*8.31446)*this.getTemperature()) / 1.00784)),5);
     }
 
     push(p){ //add new particle (given by p)
@@ -526,7 +533,7 @@ class HUD{ //handler for updating DOM elements
             this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+truncDisp(this.context.width, 3)+"nm x "+truncDisp(this.context.height, 3)+"nm x "+truncDisp(this.context.length, 3)+"nm )<br />";
             this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
             this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
-            this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+" m/s<br />";
+            this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+"nm/s<br />";
             this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
             this._info.innerHTML+="Constant Variable: "+CONSTANT+"<br />";
         }else{
@@ -620,7 +627,7 @@ function decreaseVolume(){
         context.reBuffer();
         reContainGas();
     }
-    console.log("BRUH");
+    
 
 
 }

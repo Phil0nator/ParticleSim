@@ -533,7 +533,7 @@ class HUD{ //handler for updating DOM elements
             this._info.innerHTML+="Volume: "+this.context.getVolume()+"nm<sup>3</sup>   ::   ( "+truncDisp(this.context.width, 3)+"nm x "+truncDisp(this.context.height, 3)+"nm x "+truncDisp(this.context.length, 3)+"nm )<br />";
             this._info.innerHTML+="Temperature: "+this.context.getTemperature()+"K <br />";
             this._info.innerHTML+="Particles: "+this.context.particleCount+"<br />";
-            this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+"nm/s<br />";
+            this._info.innerHTML+="Root-Mean-Squared Velocity: "+this.context.getRootMeanSquaredVelocity()+"m/s<br />";
             this._info.innerHTML+="Collisions: "+this.context.colls+"<br />";
             this._info.innerHTML+="Constant Variable: "+CONSTANT+"<br />";
         }else{
